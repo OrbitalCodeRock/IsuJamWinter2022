@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class P_UnitStateFactory : MonoBehaviour
+public class P_UnitStateFactory
 {
     private PlayerUnit _context;
 

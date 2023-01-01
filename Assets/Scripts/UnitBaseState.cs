@@ -80,4 +80,8 @@ public abstract class UnitBaseState
         newSubState.SetSuperState(this);
         _currentSubState.EnterState();
     }
+
+    public virtual void CalculateAction(){
+
+    }
 }

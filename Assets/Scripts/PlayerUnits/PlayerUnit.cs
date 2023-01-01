@@ -21,17 +21,23 @@ public class PlayerUnit : MonoBehaviour
 
     void Awake(){
         _states = new P_UnitStateFactory(this);
+        _currentState = _states.Standby();
+        _currentState.EnterState();
     }
     
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
+     // Update is called once per frame
     void Update()
     {
-        
+        _currentState.CallUpdateStates();        
     }
+
+    private void FixedUpdate()
+    {
+        _currentState.CallFixedUpdateStates();
+    }
+
+    public void IssueCommand(){
+        _currentState.CalculateAction();
+    }
+
 }
