@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerUnit : MonoBehaviour
+public class PlayerUnit : MonoBehaviour, ISelectable
 {
 
     // Skill Levels
@@ -19,12 +19,20 @@ public class PlayerUnit : MonoBehaviour
     private P_UnitStateFactory _states;
     public UnitBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
 
+    public Transform moveTarget;
+
     void Awake(){
         _states = new P_UnitStateFactory(this);
         _currentState = _states.Standby();
         _currentState.EnterState();
     }
-    
+    void Start(){
+        GameManager.instance.p_Units.Add(this.gameObject);
+        GameObject target = new GameObject();
+        target.name = "MoveTarget";
+        moveTarget = target.transform;
+        moveTarget.SetParent(GameManager.instance.targetHolder.transform);
+    }
      // Update is called once per frame
     void Update()
     {
@@ -36,8 +44,16 @@ public class PlayerUnit : MonoBehaviour
         _currentState.CallFixedUpdateStates();
     }
 
-    public void IssueCommand(){
-        _currentState.CalculateAction();
+    public void GenerateCommandOptions(Vector2 commandClickPosition, GameObject[] hoveredObjects){
+        // Return a list of actions available to the unit
+        _currentState.CalculateAvailableActions(commandClickPosition, hoveredObjects);
     }
 
+    public void Select(){
+
+    }
+
+    public void Deselect(){
+
+    }
 }

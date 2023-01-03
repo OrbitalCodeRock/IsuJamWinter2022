@@ -10,7 +10,6 @@ public class OverlapChecker : MonoBehaviour
     private BoxCollider2D spriteOverlapCollider;
     private void Awake(){
         spriteOverlapCollider = spriteOverlapObject.GetComponent<BoxCollider2D>();
-        Debug.Log(spriteOverlapCollider);
     }
 
     /* There are two seperate colliders on most objects, one that overlaps with the entire sprite and one that
