@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PlayerUnit : MonoBehaviour, ISelectable
 {
-
     // Skill Levels
     public int miningLvl;
     public int woodcuttingLvl;
@@ -13,6 +12,10 @@ public class PlayerUnit : MonoBehaviour, ISelectable
     public int spearLvl;
     public int swordLvl;
 
+    // Items the unit is carrying with it
+    public Item[] carriedItems;
+    // The item the unit is currently displaying on screen
+    public Item displayedItem;
 
     // Unit State Machine
     private UnitBaseState _currentState;
@@ -47,6 +50,7 @@ public class PlayerUnit : MonoBehaviour, ISelectable
     public void GenerateCommandOptions(Vector2 commandClickPosition, GameObject[] hoveredObjects){
         // Return a list of actions available to the unit
         _currentState.CalculateAvailableActions(commandClickPosition, hoveredObjects);
+        // Display a list of those actions near the mouse
     }
 
     public void Select(){

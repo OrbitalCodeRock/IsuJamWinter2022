@@ -25,20 +25,23 @@ public class OverlapChecker : MonoBehaviour
     /* The method below seems to work well for now, but there is an overflow risk since this method only increases
        the render order of other objects when necessary (as opposed to decreasing it). Theres probably a way to get around
        this */
+    // Maybe allowing the current unit to decrease its own render order as long as it stays at or above the default order would work.
     private void Update(){
 
         List<Collider2D> spriteOverlaps = new List<Collider2D>(5);
         spriteOverlapCollider.OverlapCollider(OverlapManager.instance.spriteOverlapFilter, spriteOverlaps);
         if(spriteOverlaps.Count == 0){
-             this.gameObject.GetComponent<SortingGroup>().sortingOrder = OverlapManager.instance.defaultUnitLayer;
+             this.gameObject.GetComponent<SortingGroup>().sortingOrder = OverlapManager.instance.defaultUnitOrder;
              return;
         }
-        int currentUnitSortingOrder = this.gameObject.GetComponent<SortingGroup>().sortingOrder;
+        SortingGroup currentUnitSortingGroup = this.gameObject.GetComponent<SortingGroup>();
         float currentUnitBaseHeight = this.gameObject.GetComponent<Collider2D>().bounds.min.y;
         for(int i = 0; i < spriteOverlaps.Count; i++){
-            if(spriteOverlaps[i].transform.parent.GetComponent<SortingGroup>().sortingOrder <= currentUnitSortingOrder && 
-            spriteOverlaps[i].GetComponent<Collider2D>().bounds.min.y < currentUnitBaseHeight){
-                spriteOverlaps[i].transform.parent.GetComponent<SortingGroup>().sortingOrder = currentUnitSortingOrder + 1;
+            SortingGroup otherUnitSortingGroup = spriteOverlaps[i].transform.parent.GetComponent<SortingGroup>();
+            if(otherUnitSortingGroup.sortingOrder <= currentUnitSortingGroup.sortingOrder && 
+            spriteOverlaps[i].GetComponent<Collider2D>().bounds.min.y < currentUnitBaseHeight)
+            {
+                spriteOverlaps[i].transform.parent.GetComponent<SortingGroup>().sortingOrder = currentUnitSortingGroup.sortingOrder + 1;
             }
         }
     }

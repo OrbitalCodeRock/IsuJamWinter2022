@@ -8,7 +8,7 @@ public class OverlapManager : MonoBehaviour
 
     public ContactFilter2D spriteOverlapFilter;
 
-    public int defaultUnitLayer;
+    public int defaultUnitOrder;
 
     // public LayerMask spriteOverlapLayermask;
 

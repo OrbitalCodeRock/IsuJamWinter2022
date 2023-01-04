@@ -81,7 +81,7 @@ public abstract class UnitBaseState
         _currentSubState.EnterState();
     }
 
-    public virtual void CalculateAvailableActions(Vector2 commandClickPosition, GameObject[] hoveredObjects){
+    public virtual void CalculateAvailableActions(Vector2 commandClickPosition, GameObject[] commandClickObjects){
         
     }
 }
