@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
     public Vector2 mousePosition;
     public GameObject[] hoveredObjects;
 
+    public List<GameObject> hoveredSelectableObjects;
+
     public GameObject[] lastCommandClickObjects;
 
     public Vector2 lastCommandClickPosition;
@@ -46,6 +48,8 @@ public class GameManager : MonoBehaviour
         controls.GeneralGameplay.Select.performed += OnSelectPerformed;
         controls.GeneralGameplay.Command.performed += OnCommandPerformed;
 
+        controls.GeneralGameplay.Enable();
+
     }
     // Start is called before the first frame update
     void Start()
@@ -60,14 +64,20 @@ public class GameManager : MonoBehaviour
 
         // Get objects that the mouse is currently hovering over
         Collider2D[] colliders = Physics2D.OverlapCircleAll(mousePosition, 0.25f, mouseHitboxLayer.value);
-        if(colliders != null){
-            hoveredObjects = new GameObject[colliders.Length];
-            for(int i = 0; i < colliders.Length; i++){
+        if(colliders.Length > 0){
+            int length = colliders.Length;
+            hoveredObjects = new GameObject[length];
+            hoveredSelectableObjects = new List<GameObject>(length);
+            for(int i = 0; i < length; i++){
                 hoveredObjects[i] = colliders[i].transform.parent.gameObject;
+                if(hoveredObjects[i].GetComponent<ISelectable>() != null){
+                    hoveredSelectableObjects.Add(hoveredObjects[i]);
+                }
             }
         }
         else{
             hoveredObjects = null;
+            hoveredSelectableObjects = null;
         }
         
     }
@@ -81,40 +91,53 @@ public class GameManager : MonoBehaviour
         else if(p_SelectedUnits.Count > 1){
             IssueGroupCommand(p_SelectedUnits);
         }
-        
     }
 
+    GameObject closestObject;
+
     private void OnSelectPerformed(InputAction.CallbackContext args){
-        GameObject[] possibleSelections = hoveredObjects;
-        Vector2 lastMousePosition = mousePosition;
-        GameObject closestObject = possibleSelections[0];
+        // GameObject[] possibleSelections = hoveredSelectableObjects.ToArray();
+        // Vector2 lastMousePosition = mousePosition;
+        Debug.Log("SelectPerformed");
+        if(hoveredSelectableObjects == null) return;
+        Debug.Log("Select phase 2");
+        closestObject = hoveredSelectableObjects[0];
         GameObject p_closestUnit = null;
-        foreach(GameObject selection in possibleSelections){
-            if(IsCloserToPosition(selection, closestObject, lastMousePosition)){
+        foreach(GameObject selection in hoveredSelectableObjects){
+            if(IsCloserToPosition(selection, closestObject, mousePosition)){
                 closestObject = selection;
             }
-            if(selection.GetComponent<PlayerUnit>()){
-                if(p_closestUnit == null || IsCloserToPosition(selection,p_closestUnit,lastMousePosition)){
+            if(selection.GetComponent<PlayerUnit>() != null){
+                if(p_closestUnit == null || IsCloserToPosition(selection,p_closestUnit,mousePosition)){
                     p_closestUnit = selection;
                 }
             }
         }
         if(p_closestUnit != null){
+            DeselectObjects();
+            p_closestUnit.GetComponent<ISelectable>().Select();
             p_SelectedUnits = new List<GameObject>();
             p_SelectedUnits.Add(p_closestUnit);
-            p_closestUnit.GetComponent<ISelectable>().Select();
-            foreach(GameObject unit in p_SelectedUnits){
-                unit.GetComponent<ISelectable>().Deselect();
-            }
         }
         else{
-            if(closestObject.GetComponent<ISelectable>() != null) closestObject.GetComponent<ISelectable>().Select();
+            DeselectObjects();
+            if(closestObject != null){
+                closestObject.GetComponent<ISelectable>().Select();
+            }
         }
 
     }
 
+    private void DeselectObjects(){
+        foreach(GameObject unit in p_SelectedUnits){
+                unit.GetComponent<ISelectable>().Deselect();
+        }
+        if(closestObject != null) closestObject.GetComponent<ISelectable>().Deselect();
+    }
+
+    // Returns true if a is closer or equidistant to a given position, compared to b
     private bool IsCloserToPosition(GameObject a, GameObject b, Vector2 position){
-        return Mathf.Abs(a.transform.position.sqrMagnitude - position.sqrMagnitude) < Mathf.Abs(b.transform.position.sqrMagnitude - position.sqrMagnitude);
+        return ((Vector2)a.transform.position - position).sqrMagnitude <= ((Vector2)b.transform.position - position).sqrMagnitude;
     }
 
     private void IssueGroupCommand(List<GameObject> selectedUnits){

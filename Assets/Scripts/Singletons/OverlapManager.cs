@@ -8,6 +8,9 @@ public class OverlapManager : MonoBehaviour
 
     public ContactFilter2D spriteOverlapFilter;
 
+    public List<List<GameObject>> overlapGroups;
+    public Stack<int> emptyGroupIndicies;
+
     public int defaultUnitOrder;
 
     // public LayerMask spriteOverlapLayermask;
@@ -19,17 +22,15 @@ public class OverlapManager : MonoBehaviour
         else{
             instance = this;
         }
+        overlapGroups = new List<List<GameObject>>(15);
+        emptyGroupIndicies = new Stack<int>(overlapGroups.Capacity);
+        for(int i = 0; i < overlapGroups.Capacity; i++){
+            emptyGroupIndicies.Push(i);
+        }
+
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    private void LateUpdate(){
 
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

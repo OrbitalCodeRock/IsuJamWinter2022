@@ -1,5 +1,5 @@
 {
-    "name": "ControlAsset",
+    "name": "GameControls",
     "maps": [
         {
             "name": "GeneralGameplay",

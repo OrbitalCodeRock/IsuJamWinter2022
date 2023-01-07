@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class OverlapChecker : MonoBehaviour
+public class OverlapChecker : MonoBehaviour, IOverlappable
 { 
+    public int OverlapGroupIndex{get; set;} = -1;
+
     public GameObject spriteOverlapObject;
 
     private BoxCollider2D spriteOverlapCollider;
@@ -46,25 +48,26 @@ public class OverlapChecker : MonoBehaviour
         }
     }
 
-    // private void OnTriggerStay2D(Collider2D col){
+    private void OnTriggerEnter2D(Collider2D other){
+        /* If the other gameobject is currently in an overlap group and this object is not
+           do nothing, unless the other object is a stationary object, in which case this
+           object should add itself to the other overlap group */
 
-    //     Debug.Log("Test");
-    //     if(col.gameObject.layer == GameManager.instance.mouseHitboxLayer){
-    //         float otherUnitBaseHeight = col.transform.parent.GetComponent<BoxCollider2D>().bounds.center.y;
-    //         float thisUnitBaseHeight = this.gameObject.GetComponent<BoxCollider2D>().bounds.center.y;
-    //         if(otherUnitBaseHeight < thisUnitBaseHeight){
-    //             col.transform.parent.GetComponent<SortingGroup>().sortingOrder = this.gameObject.GetComponent<SortingGroup>().sortingOrder + 1;
-    //         }
-    //     }
-    // }
-
-    // private void OnTriggerExit2D(Collider2D col){
-    //     List<Collider2D> spriteOverlaps = new List<Collider2D>(5);
-    //     spriteOverlapCollider.OverlapCollider(OverlapManager.instance.spriteOverlapFilter, spriteOverlaps);
-    //     foreach(Collider2D overlap in spriteOverlaps){  
-    //         if(overlap != null) return;
-    //     }
-    //     this.gameObject.GetComponent<SortingGroup>().sortingOrder = OverlapManager.instance.defaultUnitLayer;
+        /* if this gameobject is not in an overlap group, and the other object is not in an overlap group,
+           add both objects to the same overlap group
+        */
         
-    // }
+        /* If this gameobject is currently in an overlap group and the other object is not,
+           add the other gameobject to the current gameobject's overlap group.   
+        */
+
+        /* If both gameobjects are in an overlap group, let the gameobject with the highest render order 
+           merge the overlap groups into one. This provides a higher chance of creating an already sorted
+           overlap group (sorted by ascending order of minimum sprite bounding box height)
+        */
+
+        if(OverlapGroupIndex == -1){
+           
+        }
+    }
 }

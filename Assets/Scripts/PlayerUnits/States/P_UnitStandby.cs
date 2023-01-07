@@ -12,6 +12,11 @@ public class P_UnitStandby : UnitBaseState
     public override void CalculateAvailableActions(Vector2 commandClickPosition, GameObject[] commandClickObjects)
     {
         List<PlayerUnitAction> actionList = new List<PlayerUnitAction>();
+        // Should also probably add a way to move behind objects as well
+        if(commandClickObjects == null){
+            actionList.Add(new PlayerUnitAction(Ctx.gameObject, null, PlayerUnitAction.ActionType.Move, "Move here"));
+            return;
+        }
          /*
            Find the one PlayerUnitAction for each action type that involves a target object
            with the highest render order.
@@ -22,23 +27,33 @@ public class P_UnitStandby : UnitBaseState
         */
 
         // Tree object with highest render order at the mouse click position.
-        GameObject treeObj = commandClickObjects[0];
+        GameObject treeObj = null;
 
         // There should also be one for rocks
 
         // Also ones for enemies/special enemies if any
 
-        for(int i = 1; i < commandClickObjects.Length; i++){
-            if(commandClickObjects[i].GetComponent<TreeScript>() != null && 
-            commandClickObjects[i].GetComponent<SortingGroup>().sortingOrder > treeObj.GetComponent<SortingGroup>().sortingOrder)
+        for(int i = 0; i < commandClickObjects.Length; i++){
+            if(commandClickObjects[i].GetComponent<TreeScript>() == null){
+                continue;
+            }
+            else if(treeObj == null){
+                treeObj = commandClickObjects[i];
+                continue;
+            }
+            if(commandClickObjects[i].GetComponent<SortingGroup>().sortingOrder > treeObj.GetComponent<SortingGroup>().sortingOrder)
             {
                 treeObj = commandClickObjects[i];
             }
         }
         
-        List<PlayerUnitAction> tempList = treeObj.GetComponent<TreeScript>().GeneratePossibleActions(Ctx);
-        foreach(PlayerUnitAction action in tempList){
-            actionList.Add(action);
+        if(treeObj != null){
+            List<PlayerUnitAction> tempList = treeObj.GetComponent<TreeScript>().GeneratePossibleActions(Ctx);
+            foreach(PlayerUnitAction action in tempList){
+                actionList.Add(action);
+            }
         }
+
+        // Next task is to display selectable buttons for these actions
     }
 }
