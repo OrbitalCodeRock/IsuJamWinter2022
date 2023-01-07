@@ -48,6 +48,9 @@ public class GameManager : MonoBehaviour
         controls.GeneralGameplay.Select.performed += OnSelectPerformed;
         controls.GeneralGameplay.Command.performed += OnCommandPerformed;
 
+        hoveredObjects = null;
+        hoveredSelectableObjects = null;
+
         controls.GeneralGameplay.Enable();
 
     }
@@ -98,9 +101,8 @@ public class GameManager : MonoBehaviour
     private void OnSelectPerformed(InputAction.CallbackContext args){
         // GameObject[] possibleSelections = hoveredSelectableObjects.ToArray();
         // Vector2 lastMousePosition = mousePosition;
-        Debug.Log("SelectPerformed");
-        if(hoveredSelectableObjects == null) return;
-        Debug.Log("Select phase 2");
+        if(hoveredSelectableObjects == null || hoveredSelectableObjects.Count == 0) return;
+        
         closestObject = hoveredSelectableObjects[0];
         GameObject p_closestUnit = null;
         foreach(GameObject selection in hoveredSelectableObjects){

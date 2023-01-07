@@ -31,6 +31,11 @@ public class OverlapManager : MonoBehaviour
     }
 
     private void LateUpdate(){
-
+        /* Loop through the list of overlapGroups
+           for each list with more than 1 object
+                Sort the list in descending order (based on minimum sprite bounding box height)
+                Assign the first object in the list with the default render order for that type of object
+                assign each successive object with a render order of 1 higher than the last
+        */
     }
 }
