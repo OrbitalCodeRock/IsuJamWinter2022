@@ -18,7 +18,8 @@ public class ResourceManager : MonoBehaviour
     public Item[] itemDatabase;
 
     // An array of integers that represent the quantities of items within itemDatabase.
-    private int[] itemQuantities;
+    [HideInInspector]
+    public int[] itemQuantities;
 
     void Awake(){
         if(this != instance && instance != null){
