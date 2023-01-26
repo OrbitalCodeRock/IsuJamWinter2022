@@ -11,6 +11,10 @@ public class OverlapManager : MonoBehaviour
 
     // Each overlap group contains the collider2Ds that enclose the visual sprite of an object.
     // This visual sprite is normally a child of the actual whole GameObject.
+
+    // I should consider implementing overlap groups as linked lists. This would make inserting and removing
+    // elements faster, as well as splitting and merging overlap groups. The tradeoff would be that a linked
+    // list requires more storage space.
     public List<List<Collider2D>> overlapGroups;
 
     // A stack that allows us to quickly identify and access empty overlap groups.
@@ -39,15 +43,15 @@ public class OverlapManager : MonoBehaviour
         //     overlapGroups.Add(new List<Collider2D>(defaultGroupCapacity));
         // }
         emptyGroupIndicies = new Stack<int>(overlapGroups.Capacity);
-        for(int i = 0; i < overlapGroups.Capacity; i++){
-            emptyGroupIndicies.Push(i);
-        }
+        // for(int i = 0; i < overlapGroups.Capacity; i++){
+        //     emptyGroupIndicies.Push(i);
+        // }
 
         stationaryOverlapGroups = new List<List<Collider2D>>(25);
         emptyStationaryGroupIndicies = new Stack<int>(stationaryOverlapGroups.Capacity);
-        for(int i = 0; i < stationaryOverlapGroups.Capacity; i++){
-            emptyStationaryGroupIndicies.Push(i);
-        }
+        // for(int i = 0; i < stationaryOverlapGroups.Capacity; i++){
+        //     emptyStationaryGroupIndicies.Push(i);
+        // }
     }
 
     private void LateUpdate(){
@@ -112,15 +116,14 @@ public class OverlapManager : MonoBehaviour
         int emptyGroupIndex;
         /* If the stack of group indicies is empty (happens when there are no more empty overlapGroups)
            then we need to create a new overlap group*/
+        // Note: TryPop will automatically pop into emptyGroupIndex if the stack is poppable
         if(!emptyGroupIndicies.TryPop(out emptyGroupIndex)){
             overlapGroups.Add(new List<Collider2D>(defaultGroupCapacity));
             emptyGroupIndex = overlapGroups.Count - 1;
         }
-        else{
-            emptyGroupIndex = emptyGroupIndicies.Pop();
-        }
+        Debug.Log("Group index: " + emptyGroupIndex);
         overlapGroups[emptyGroupIndex].Add(objToAdd);
-        objToAdd.GetComponent<IOverlappable>().OverlapGroupIndex = emptyGroupIndex;
+        objToAdd.GetComponentInParent<IOverlappable>().OverlapGroupIndex = emptyGroupIndex;
     }
 
     public void addToGroup(Collider2D objToAdd, int groupIndex){
@@ -130,13 +133,13 @@ public class OverlapManager : MonoBehaviour
         for(int i = 0; i < overlapGroups[groupIndex].Count; i++){
             if(overlapGroups[groupIndex][i].bounds.min.y <= objToAdd.bounds.min.y){
                 overlapGroups[groupIndex].Insert(i, objToAdd);
-                objToAdd.GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
+                objToAdd.GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
                 return;
             }
         }
         // The code below should never really be reachable, since this method is not meant for adding to an empty group
         overlapGroups[groupIndex].Add(objToAdd);
-        objToAdd.GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
+        objToAdd.GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
     }
 
     // Merges and empties elements from group 2 into group 1.
@@ -163,13 +166,13 @@ public class OverlapManager : MonoBehaviour
             }
             
             // The newley merged list will replace the overlapGroup with index "groupIndex1"
-            overlapGroups[limitingGroup][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex1;
-            overlapGroups[largerGroup][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex1;
+            overlapGroups[limitingGroup][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex1;
+            overlapGroups[largerGroup][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex1;
         }
 
         for(int i = overlapGroups[limitingGroup].Count; i < overlapGroups[largerGroup].Count; i++){
             mergeList.Add(overlapGroups[largerGroup][i]);
-            overlapGroups[largerGroup][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex1;
+            overlapGroups[largerGroup][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex1;
         }
 
         overlapGroups[groupIndex1] = mergeList;
@@ -180,10 +183,30 @@ public class OverlapManager : MonoBehaviour
 
     // Provide methods for removing objects from overlap groups
 
-    /* Idea for removing elements. Look at the element to be removed, do a collider cast to see what that objects that element
-       overlaps with, and more casts to see what objects those elements overlap with. If those elements are not the objects
-       in the overlap group, move those elements into a new overlap group, try to keep them sorted for best performance.
+    /* 
+       Idea for removing elements: Look at the element to be removed, do a collider cast to see what that objects that element
+       overlaps with, if none of those objects are within this gameobject's overlap group, remove this
+       gameobject from the overlap group.
+
+       When removing the last element from the group, push the index of the group onto the emptyGroupIndicies stack
+
+       If the other object (the one that the current object is exiting from onTriggerExit) is a stationary object,
+       if the object is in a stationary group, have all objects in that group do a collider cast, if none of those
+       stationary objects are overlapping non-stationary objects within the overlap group, remove all the stationary
+       objects in the stationary group from the overlap group
+
+            This will be easier if we loop through all the overlapping objects and return as soon as
+            a non-stationary object within the overlap group is found.
+
     */
+
+    public void removeFromGroup(Collider2D objToRemove, int groupIndex){
+        overlapGroups[groupIndex].Remove(objToRemove);
+        objToRemove.GetComponentInParent<IOverlappable>().OverlapGroupIndex = -1;
+        // May have to change the line below to account for different default values
+        objToRemove.transform.parent.GetComponent<SortingGroup>().sortingOrder = defaultUnitOrder;
+        if(overlapGroups[groupIndex].Count == 0) emptyGroupIndicies.Push(groupIndex);
+    }
 
     public List<List<Collider2D>> stationaryOverlapGroups;
     public Stack<int> emptyStationaryGroupIndicies;
@@ -192,15 +215,13 @@ public class OverlapManager : MonoBehaviour
         int emptyGroupIndex;
         /* If the stack of group indicies is empty (happens when there are no more empty overlapGroups)
            then we need to create a new overlap group*/
+        // Note: Trypop will automatically pop to emptyGroupIndex if possible
         if(!emptyStationaryGroupIndicies.TryPop(out emptyGroupIndex)){
-            stationaryOverlapGroups.Add(new List<Collider2D>(defaultGroupCapacity));
+            stationaryOverlapGroups.Add(new List<Collider2D>(defaultStationaryGroupCapacity));
             emptyGroupIndex = stationaryOverlapGroups.Count - 1;
         }
-        else{
-            emptyGroupIndex = emptyStationaryGroupIndicies.Pop();
-        }
         stationaryOverlapGroups[emptyGroupIndex].Add(objToAdd);
-        objToAdd.GetComponent<IStationary>().StationaryGroupIndex = emptyGroupIndex;
+        objToAdd.GetComponentInParent<IStationary>().StationaryGroupIndex = emptyGroupIndex;
     }
     public void addToStationaryGroup(Collider2D objToAdd, int groupIndex){
         /* Trying to add the object to the group in a way such that the overlap group
@@ -208,13 +229,13 @@ public class OverlapManager : MonoBehaviour
         for(int i = 0; i < stationaryOverlapGroups[groupIndex].Count; i++){
             if(stationaryOverlapGroups[groupIndex][i].bounds.min.y <= objToAdd.bounds.min.y){
                 stationaryOverlapGroups[groupIndex].Insert(i, objToAdd);
-                objToAdd.GetComponent<IStationary>().StationaryGroupIndex = groupIndex;
+                objToAdd.GetComponentInParent<IStationary>().StationaryGroupIndex = groupIndex;
                 return;
             }
         }
         // The code below should never really be reachable, since this method is not meant for adding to an empty group
         stationaryOverlapGroups[groupIndex].Add(objToAdd);
-        objToAdd.GetComponent<IStationary>().StationaryGroupIndex = groupIndex;
+        objToAdd.GetComponentInParent<IStationary>().StationaryGroupIndex = groupIndex;
     }
 
     public void copyFromStationaryGroup(int groupIndex, int stationaryGroupIndex){
@@ -241,20 +262,20 @@ public class OverlapManager : MonoBehaviour
             }
             
             // The newley merged list will replace the overlapGroup with index "groupIndex1"
-            overlapGroups[groupIndex][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
-            stationaryOverlapGroups[stationaryGroupIndex][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
+            overlapGroups[groupIndex][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
+            stationaryOverlapGroups[stationaryGroupIndex][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
         }
 
         if(largerCount == stationaryOverlapGroups[stationaryGroupIndex].Count){
             for(int i = limitingCount; i < largerCount; i++){
                 mergeList.Add(stationaryOverlapGroups[stationaryGroupIndex][i]);
-                stationaryOverlapGroups[stationaryGroupIndex][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
+                stationaryOverlapGroups[stationaryGroupIndex][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
             }
         }
         else{
             for(int i = limitingCount; i < largerCount; i++){
                 mergeList.Add(overlapGroups[groupIndex][i]);
-                overlapGroups[groupIndex][i].GetComponent<IOverlappable>().OverlapGroupIndex = groupIndex;
+                overlapGroups[groupIndex][i].GetComponentInParent<IOverlappable>().OverlapGroupIndex = groupIndex;
             }
         }
 
