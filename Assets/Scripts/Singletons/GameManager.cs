@@ -106,11 +106,11 @@ public class GameManager : MonoBehaviour
         closestObject = hoveredSelectableObjects[0];
         GameObject p_closestUnit = null;
         foreach(GameObject selection in hoveredSelectableObjects){
-            if(IsCloserToPosition(selection, closestObject, mousePosition)){
+            if(IsCloserOrEquidistant(selection, closestObject, mousePosition)){
                 closestObject = selection;
             }
             if(selection.GetComponent<PlayerUnit>() != null){
-                if(p_closestUnit == null || IsCloserToPosition(selection,p_closestUnit,mousePosition)){
+                if(p_closestUnit == null || IsCloserOrEquidistant(selection,p_closestUnit,mousePosition)){
                     p_closestUnit = selection;
                 }
             }
@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Returns true if a is closer or equidistant to a given position, compared to b
-    private bool IsCloserToPosition(GameObject a, GameObject b, Vector2 position){
+    private bool IsCloserOrEquidistant(GameObject a, GameObject b, Vector2 position){
         return ((Vector2)a.transform.position - position).sqrMagnitude <= ((Vector2)b.transform.position - position).sqrMagnitude;
     }
 

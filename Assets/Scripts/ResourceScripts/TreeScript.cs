@@ -2,17 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TreeScript : DestructibleResource, IStationary
+public class TreeScript : DestructibleResource
 {
-    public int OverlapGroupIndex{get; set;} = -1;
-
-    public int StationaryGroupIndex{get; set;} = -1;
-
-    public Collider2D spriteOverlapCollider;
-    public Collider2D SpriteOverlapCollider{get; set;}
-
     public void Awake(){
-        SpriteOverlapCollider = spriteOverlapCollider;
+        //SpriteOverlapCollider = spriteOverlapCollider;
     }
     public override List<PlayerUnitAction> GeneratePossibleActions(PlayerUnit unit){
         List<PlayerUnitAction> actionList = new List<PlayerUnitAction>();
@@ -26,6 +19,16 @@ public class TreeScript : DestructibleResource, IStationary
         return actionList;
     }
 
+
+
+
+    // From old code that uses the Istationary interface, original use was to assign correct rendering order.
+    /*  public int OverlapGroupIndex{get; set;} = -1;
+        public int StationaryGroupIndex{get; set;} = -1;
+        public Collider2D spriteOverlapCollider;
+        public Collider2D SpriteOverlapCollider { get; set; }*/
+
+    // This note is no longer relevant, unless I decide to bring back an old script into use. 
     /* I should probably allow stationary objects to add and remove themselves to overlap groups and stationary groups during
        OnCollisionEnter and OnCollisionEnter. I could also check to make the current stationary object transparent. 
        To do this, I should probably do a collider cast and turn this object transparent if there is a non-stationary
