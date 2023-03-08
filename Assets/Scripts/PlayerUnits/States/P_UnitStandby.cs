@@ -15,6 +15,7 @@ public class P_UnitStandby : UnitBaseState
         // Should also probably add a way to move behind objects as well
         if(commandClickObjects == null){
             actionList.Add(new PlayerUnitAction(Ctx.gameObject, null, PlayerUnitAction.ActionType.Move, "Move here"));
+            // May choose to display this action, or immediately command the unit to move
             return;
         }
          /*
@@ -34,16 +35,20 @@ public class P_UnitStandby : UnitBaseState
         // Also ones for enemies/special enemies if any
 
         for(int i = 0; i < commandClickObjects.Length; i++){
-            if(commandClickObjects[i].GetComponent<TreeScript>() == null){
-                continue;
-            }
-            else if(treeObj == null){
-                treeObj = commandClickObjects[i];
-                continue;
-            }
-            if(commandClickObjects[i].GetComponent<SortingGroup>().sortingOrder > treeObj.GetComponent<SortingGroup>().sortingOrder)
+            if (commandClickObjects[i].GetComponent<TreeScript>() != null)
             {
-                treeObj = commandClickObjects[i];
+                if (treeObj == null)
+                {
+                    treeObj = commandClickObjects[i];
+                }
+                // TODO: Replace this with a function call that determines which object is rendered furthest infront
+                // If two objects of the same type are overlapping, the object with the lower y-value should be rendered infront of the object with the higher y-value.
+                // We want to select the object that is rendered farthest infront.
+                // WARN: Could cause potential errors if special rendering effects were to hide a tree from the camera view, for example.
+                else if (commandClickObjects[i].transform.position.y < treeObj.transform.position.y)
+                {
+                    treeObj = commandClickObjects[i];
+                }
             }
         }
         

@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class PlayerUnitAction
 {
+    public GameObject Actor;
+    public GameObject targetObject;
+    public ActionType actionType;
+    public string displayName;
+
     public PlayerUnitAction(GameObject Actor, GameObject targetObject, ActionType actionType, string displayName){
         this.Actor = Actor;
         this.targetObject = targetObject;
@@ -16,10 +21,5 @@ public class PlayerUnitAction
         Mine,
         Attack,
     }
-
-    public GameObject Actor;
-    public GameObject targetObject;
-    public ActionType actionType;
-    public string displayName;
 
 }
