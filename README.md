@@ -1,6 +1,6 @@
 # Real-Time-Strategy_BaseBuilder_Survival-Game
 ![Ressurrect64PalleteTest](https://github.com/OrbitalCodeRock/Real-Time-Strategy_BaseBuilder_Survival-Game/assets/37189245/97e6c9e8-d57e-48cf-b26a-f16b9ea47a7e)
-<p align="Center">Credit to: https://lospec.com/palette-list/resurrect-64 for the color palette</br></br></p>
+<p align="Center">Credit to: https://lospec.com/palette-list/resurrect-64 for the color palette.</br></br></p>
 
 A game in-progress where you control a small village. The current objective of the game is to gather resources and defeat invading enemies.
 
